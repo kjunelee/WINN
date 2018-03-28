@@ -8,6 +8,9 @@ This repository contains the code for the paper:
 Kwonjoon Lee, Weijian Xu, Fan Fan, Zhuowen Tu
 <br>
 CVPR 2018 (**Oral**)
+<p align='center'>
+  <img src='WINN-algorithm.png' width="400px">
+</p>
 
 ### Introduction
 
