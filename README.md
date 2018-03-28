@@ -3,6 +3,7 @@
 ### Introduction
 
 This repository contains the code for the paper:
+<br>
 [**Wasserstein Introspective Neural Networks**](http://arxiv.org/abs/1711.08875)
 <br>
 Kwonjoon Lee, Weijian Xu, Fan Fan, Zhuowen Tu
