@@ -6,7 +6,6 @@ This repository contains the code for the paper:
 [**Wasserstein Introspective Neural Networks**](http://arxiv.org/abs/1711.08875)
 <br>
 Kwonjoon Lee, Weijian Xu, Fan Fan, [Zhuowen Tu](http://pages.ucsd.edu/~ztu/)   
-<br>
 CVPR 2018 (**Oral**)
 <p align='center'>
   <img src='WINN-algorithm.png' width="400px">
