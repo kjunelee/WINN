@@ -3,7 +3,7 @@
 
 This repository contains the code for the paper:
 <br>
-[**Wasserstein Introspective Neural Networks**](http://arxiv.org/abs/1711.08875)
+[**Wasserstein Introspective Neural Networks**](http://pages.ucsd.edu/%7Eztu/publication/cvpr18_winn.pdf)
 <br>
 Kwonjoon Lee, Weijian Xu, Fan Fan, [Zhuowen Tu](http://pages.ucsd.edu/~ztu/)   
 CVPR 2018 (**Oral**)
