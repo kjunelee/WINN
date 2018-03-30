@@ -26,3 +26,7 @@ If you use this code for your research, please cite our paper:
   year={2018}
 }
 ```
+
+### Acknowledgments
+
+This code is based on the implementations of [**INNg**](https://github.com/intermilan/inng) and [**WGAN-GP**](https://github.com/igul222/improved_wgan_training).
