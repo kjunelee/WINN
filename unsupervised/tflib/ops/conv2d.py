@@ -2,6 +2,7 @@ import tflib as lib
 
 import numpy as np
 import tensorflow as tf
+from tflib.ops.sn import spectral_normed_weight
 
 _default_weightnorm = False
 def enable_default_weightnorm():
@@ -17,7 +18,32 @@ def unset_weights_stdev():
     global _weights_stdev
     _weights_stdev = None
 
-def Conv2D(name, input_dim, output_dim, filter_size, inputs, he_init=True, mask_type=None, stride=1, weightnorm=None, biases=True, gain=1.):
+def scope_has_variables(scope):
+    return len(tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope=scope.name)) > 0
+
+def spectrally_normed_weight(name, W, update_collection=tf.GraphKeys.UPDATE_OPS):
+    W_shape = W.shape.as_list()
+    number_filters = W_shape[-1]
+
+    # reshape into 2D.
+    W_reshaped = tf.reshape(W, [-1, number_filters])
+
+    # initialize u as a random vector.
+    u = tf.get_variable(name+"u", (1, number_filters), initializer=tf.truncated_normal_initializer(), trainable=False)
+
+    new_v = tf.nn.l2_normalize(tf.matmul(u, tf.transpose(W_reshaped)), 1)
+    new_u = tf.nn.l2_normalize(tf.matmul(new_v, W_reshaped), 1)
+    new_u = tf.stop_gradient(new_u)
+    new_v = tf.stop_gradient(new_v)
+
+    sigma = tf.reduce_sum(tf.matmul(new_u, tf.transpose(W_reshaped)) * new_v, axis=1)
+    W_bar = W_reshaped / sigma
+    W_bar = tf.reshape(W_bar, W_shape)
+
+    tf.add_to_collection(update_collection, u.assign(new_u))
+    return W_bar
+
+def Conv2D(name, input_dim, output_dim, filter_size, inputs, he_init=True, mask_type=None, stride=1, weightnorm=None, biases=True, gain=1., padding = 'SAME', spectral_normed = False, update_collection=None, bias_init = 0.0):
     """
     inputs: tensor of shape (batch size, num channels, height, width)
     mask_type: one of None, 'a', 'b'
@@ -25,7 +51,11 @@ def Conv2D(name, input_dim, output_dim, filter_size, inputs, he_init=True, mask_
     returns: tensor of shape (batch size, num channels, height, width)
     """
     with tf.name_scope(name) as scope:
-
+        #### This part is added for SN ###
+        #if scope_has_variables(scope):
+        #    scope.reuse_variables()
+        #### This part is added for SN ###
+            
         if mask_type is not None:
             mask_type, mask_n_channels = mask_type
 
@@ -102,19 +132,43 @@ def Conv2D(name, input_dim, output_dim, filter_size, inputs, he_init=True, mask_
         if mask_type is not None:
             with tf.name_scope('filter_mask'):
                 filters = filters * mask
+        if spectral_normed:
+            norm_values = np.sqrt(np.sum(np.square(filter_values), axis=(0,1,2,3)))
+            target_norms = lib.param(
+                name + '.sng',
+                norm_values
+            )
+            """
+            result = tf.nn.conv2d(
+                input=inputs, 
+                filter=target_norms*spectral_normed_weight(name, filters, num_iters=1, update_collection=update_collection), 
+                strides=[1, 1, stride, stride],
+                padding=padding,
+                data_format='NCHW'
+            )
+            """
+            result = tf.nn.conv2d(
+                input=inputs, 
+                filter=spectral_normed_weight(name, filters, num_iters=7, update_collection=tf.GraphKeys.UPDATE_OPS),
+                strides=[1, 1, stride, stride],
+                padding=padding,
+                data_format='NCHW'
+            )
+            #spectrally_normed_weight(name, filters, update_collection=tf.GraphKeys.UPDATE_OPS),
 
-        result = tf.nn.conv2d(
-            input=inputs, 
-            filter=filters, 
-            strides=[1, 1, stride, stride],
-            padding='SAME',
-            data_format='NCHW'
-        )
-
+        else:
+            result = tf.nn.conv2d(
+                input=inputs, 
+                filter=filters, 
+                strides=[1, 1, stride, stride],
+                padding=padding,
+                data_format='NCHW'
+            )
+        
         if biases:
             _biases = lib.param(
                 name+'.Biases',
-                np.zeros(output_dim, dtype='float32')
+                np.ones(output_dim, dtype='float32') * bias_init
             )
 
             result = tf.nn.bias_add(result, _biases, data_format='NCHW')

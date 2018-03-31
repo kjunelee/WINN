@@ -2,6 +2,7 @@ import tflib as lib
 
 import numpy as np
 import tensorflow as tf
+from tflib.ops.sn import spectral_normed_weight
 
 _default_weightnorm = False
 def enable_default_weightnorm():
@@ -21,6 +22,28 @@ def unset_weights_stdev():
     global _weights_stdev
     _weights_stdev = None
 
+def spectrally_normed_weight(name, W, update_collection=tf.GraphKeys.UPDATE_OPS):
+    W_shape = W.shape.as_list()
+    number_filters = W_shape[-1]
+
+    # reshape into 2D.
+    W_reshaped = tf.reshape(W, [-1, number_filters])
+
+    # initialize u as a random vector.
+    u = tf.get_variable(name+"u", (1, number_filters), initializer=tf.truncated_normal_initializer(), trainable=False)
+
+    new_v = tf.nn.l2_normalize(tf.matmul(u, tf.transpose(W_reshaped)), 1)
+    new_u = tf.nn.l2_normalize(tf.matmul(new_v, W_reshaped), 1)
+    new_u = tf.stop_gradient(new_u)
+    new_v = tf.stop_gradient(new_v)
+
+    sigma = tf.reduce_sum(tf.matmul(new_u, tf.transpose(W_reshaped)) * new_v, axis=1)
+    W_bar = W_reshaped / sigma
+    W_bar = tf.reshape(W_bar, W_shape)
+
+    tf.add_to_collection(update_collection, u.assign(new_u))
+    return W_bar
+
 def Linear(
         name, 
         input_dim, 
@@ -29,8 +52,8 @@ def Linear(
         biases=True,
         initialization=None,
         weightnorm=None,
-        gain=1.
-        ):
+        gain=1., spectral_normed = False
+    ):
     """
     initialization: None, `lecun`, 'glorot', `he`, 'glorot_he', `orthogonal`, `("uniform", range)`
     """
@@ -130,10 +153,32 @@ def Linear(
         #     weight = tf.nn.softsign(10.*weight)*.1
 
         if inputs.get_shape().ndims == 2:
-            result = tf.matmul(inputs, weight)
+            if spectral_normed:
+                norm_values = np.sqrt(np.sum(np.square(weight_values), axis=(0,1)))
+                # norm_values = np.linalg.norm(weight_values, axis=0)
+
+                target_norms = lib.param(
+                    name + '.sng',
+                    norm_values
+                )
+
+                result = tf.matmul(inputs, spectral_normed_weight(name, weight, num_iters=7, update_collection=tf.GraphKeys.UPDATE_OPS))
+                
+            else:
+                result = tf.matmul(inputs, weight)
         else:
             reshaped_inputs = tf.reshape(inputs, [-1, input_dim])
-            result = tf.matmul(reshaped_inputs, weight)
+            if spectral_normed:
+                norm_values = np.sqrt(np.sum(np.square(weight_values), axis=(0,1)))
+                # norm_values = np.linalg.norm(weight_values, axis=0)
+
+                target_norms = lib.param(
+                    name + '.sng',
+                    norm_values
+                )
+                result = tf.matmul(inputs, spectral_normed_weight(name, weight, num_iters=7, update_collection=tf.GraphKeys.UPDATE_OPS))
+            else:
+                result = tf.matmul(reshaped_inputs, weight)
             result = tf.reshape(result, tf.pack(tf.unpack(tf.shape(inputs))[:-1] + [output_dim]))
 
         if biases:
