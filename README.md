@@ -1,4 +1,4 @@
-# Wasserstein-Introspective-Neural-Networks
+# Wasserstein Introspective Neural Networks
 
 
 This repository contains the code for the paper:
