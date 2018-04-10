@@ -5,7 +5,7 @@ This repository contains the code for the paper:
 <br>
 [**Wasserstein Introspective Neural Networks**](http://pages.ucsd.edu/%7Eztu/publication/cvpr18_winn.pdf)
 <br>
-Kwonjoon Lee, Weijian Xu, Fan Fan, [Zhuowen Tu](http://pages.ucsd.edu/~ztu/)   
+Kwonjoon Lee, [Weijian Xu](https://weijianxu.com/about.html), Fan Fan, [Zhuowen Tu](http://pages.ucsd.edu/~ztu/)   
 CVPR 2018 (**Oral**)
 <p align='center'>
   <img src='WINN-algorithm.png' width="400px">
