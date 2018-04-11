@@ -22,15 +22,15 @@ def read32(bytestream):
 def download_mnist(mnist_dir = './mnist'):
     if not os.path.exists(mnist_dir):
         os.mkdir(mnist_dir)
-    import urllib
-    urllib.urlretrieve('http://cseweb.ucsd.edu/~weijian/static/datasets/mnist/t10k-images-idx3-ubyte.gz', 
-                       './mnist/t10k-images-idx3-ubyte.gz')
-    urllib.urlretrieve('http://cseweb.ucsd.edu/~weijian/static/datasets/mnist/t10k-labels-idx1-ubyte.gz', 
-                       './mnist/t10k-labels-idx1-ubyte.gz')
-    urllib.urlretrieve('http://cseweb.ucsd.edu/~weijian/static/datasets/mnist/train-images-idx3-ubyte.gz', 
-                       './mnist/train-images-idx3-ubyte.gz')
-    urllib.urlretrieve('http://cseweb.ucsd.edu/~weijian/static/datasets/mnist/train-labels-idx1-ubyte.gz', 
-                       './mnist/train-labels-idx1-ubyte.gz')
+        import urllib
+        urllib.urlretrieve('http://cseweb.ucsd.edu/~weijian/static/datasets/mnist/t10k-images-idx3-ubyte.gz', 
+                           './mnist/t10k-images-idx3-ubyte.gz')
+        urllib.urlretrieve('http://cseweb.ucsd.edu/~weijian/static/datasets/mnist/t10k-labels-idx1-ubyte.gz', 
+                           './mnist/t10k-labels-idx1-ubyte.gz')
+        urllib.urlretrieve('http://cseweb.ucsd.edu/~weijian/static/datasets/mnist/train-images-idx3-ubyte.gz', 
+                           './mnist/train-images-idx3-ubyte.gz')
+        urllib.urlretrieve('http://cseweb.ucsd.edu/~weijian/static/datasets/mnist/train-labels-idx1-ubyte.gz', 
+                           './mnist/train-labels-idx1-ubyte.gz')
     
 def load_train_data():
     mnist_dir = './mnist'
